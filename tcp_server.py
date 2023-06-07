@@ -1,14 +1,17 @@
 import socket
 import threading
+from time import sleep
 
 # Define the server host and port
 HOST = 'localhost'
 PORT = 12345
 
-level_input = 0.0
+level_input = 0.5
 mutex = threading.Lock()
 
 def ReceiverServer():
+
+    field_names = ['Saída']
 
     global level_input
 
@@ -25,10 +28,13 @@ def ReceiverServer():
     # Accept a client connection
     client_socket, client_address = server_socket.accept()
     print(f"Accepted connection from {client_address[0]}:{client_address[1]}")
-
+    
     while True:
         # Receive data from the client
         data = client_socket.recv(1024).decode('utf-8')
+        if data == '':
+            data = ".0"
+        data = float(data)
         mutex.acquire()
         level_input = float(data)
         mutex.release()
@@ -54,7 +60,7 @@ def SenderServer():
 
     # Listen for incoming connections
     server_socket.listen(1)
-    print(f"Server listening on {HOST}:{PORT}")
+    print(f"Server listening on {HOST}:{PORT+1}")
 
     # Accept a client connection
     client_socket, client_address = server_socket.accept()
@@ -71,11 +77,11 @@ def SenderServer():
             print("Termination code received. Closing the connection.")
             break
 
-        response = "Server received: "
-        mutex.acquire()
-        response = "Server received: " + str(level_input)
-        mutex.release()
+        
+        response = str(1) + ',' + str(data)
         client_socket.send(response.encode('utf-8'))
+
+        sleep(.01)
 
     # Close the connection
     client_socket.close()

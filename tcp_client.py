@@ -1,11 +1,16 @@
 import socket
 import threading
+import csv
 
 # Define the server host and port
 HOST = 'localhost'
 PORT = 12345
+terminate = False
+mutex = threading.Lock()
 
 def SenderClient():
+
+    global terminate
 
     # Create a TCP socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -14,7 +19,7 @@ def SenderClient():
     client_socket.connect((HOST, PORT))
     print(f"Connected to {HOST}:{PORT}")
 
-    while True:
+    while not terminate:
         # Get user input
         level_input = float(input("Enter the tank level: "))
 
@@ -24,25 +29,45 @@ def SenderClient():
         # Check if termination code sent
         if level_input == 0.0:
             print("Termination code sent. Closing the connection.")
-            break
+            mutex.acquire()
+            terminate = True
+            mutex.release()
 
     # Close the connection
     client_socket.close()
 
 def ReceiverClient():
 
+    global terminate
+
     # Create a TCP socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Connect to the server
     client_socket.connect((HOST, PORT+1))
-    print(f"Connected to {HOST}:{PORT}")
+    print(f"Connected to {HOST}:{PORT+1}")
 
-    while True:
+    csv_file = 'data.csv'
+    field_names = ['Ciclo',u'Saída']
 
-        # Receive and print the server's response
-        response = client_socket.recv(1024).decode('utf-8')
-        print(f"Received response: {response}")
+    with open(csv_file, mode='w', newline='') as file:
+        
+        # Create a CSV writer object
+        writer = csv.writer(file)
+        
+        writer.writerow(field_names)
+        
+        while not terminate:
+
+            response = client_socket.recv(1024).decode('utf-8')
+            if response == '':
+                response = "0,.0"
+            my_array = response.split(',')
+            arr = []
+            arr.append(int(my_array[0]))
+            arr.append(float(my_array[1]))
+            writer.writerow(arr)
+            arr.clear()
 
     # Close the connection
     client_socket.close()
