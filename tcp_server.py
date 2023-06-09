@@ -1,3 +1,4 @@
+import datetime
 import socket
 import threading
 from time import sleep
@@ -68,6 +69,7 @@ def SenderServer():
 
     while True:
 
+        start_time = datetime.datetime.now()
         # Check if termination code received
         mutex.acquire()
         data = level_input
@@ -80,8 +82,7 @@ def SenderServer():
         
         response = str(1) + ',' + str(data)
         client_socket.send(response.encode('utf-8'))
-
-        sleep(.01)
+        sleep(.01 - (datetime.datetime.now()-start_time).total_seconds())
 
     # Close the connection
     client_socket.close()
