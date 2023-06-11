@@ -21,13 +21,13 @@ def SenderClient():
 
     while not terminate:
         # Get user input
-        level_input = float(input("Enter the tank level: "))
+        level_input = float(input("Nível desejado do tanque: "))
 
         # Send data to the server
         client_socket.send(str(level_input).encode('utf-8'))
 
         # Check if termination code sent
-        if level_input == 0.0:
+        if level_input < .05 or level_input > .95:
             print("Termination code sent. Closing the connection.")
             mutex.acquire()
             terminate = True
@@ -65,6 +65,10 @@ def ReceiverClient():
             my_array = response.split(',')
             arr = []
             arr.append(int(my_array[0]))
+            if float(my_array[1]) < .05:
+                print('Tanque com nível abaixo de 5%')
+            if float(my_array[1]) > .95:
+                print('Tanque com nível acima de 95%')
             arr.append(float(my_array[1]))
             writer.writerow(arr)
             arr.clear()

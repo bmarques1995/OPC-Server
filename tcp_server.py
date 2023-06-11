@@ -11,6 +11,18 @@ PORT = 12345
 level_input = 0.5
 mutex = threading.Lock()
 
+class ClosedBlock:
+    def __init__(self):
+        self.LastInput = .0
+        self.LastOutput = .0
+
+    def GetOutput(self, arg_input, arg_feedback):
+        output = (arg_input - arg_feedback) - .9235 * self.LastInput + self.LastOutput
+
+        self.LastInput = (arg_input - arg_feedback)
+        self.LastOutput = output
+        return output
+
 def ReceiverServer():
 
     field_names = ['Saída']
@@ -55,6 +67,9 @@ def ReceiverServer():
 def SenderServer():
     global level_input
 
+    loop = ClosedBlock()
+    currentOutput = .0
+
     counter = 1
 
     opc_url = "opc.tcp://127.0.0.1:4850"
@@ -84,15 +99,22 @@ def SenderServer():
 
         if data == 0.0:
             print("Termination code received. Closing the connection.")
+            Finish = opc_client.get_node("ns=2;i=5")
+            Finish.set_value(True)
             break
+        
+        temp_output = loop.GetOutput(level_input, currentOutput) * 2.5
 
-        Lev = opc_client.get_node("ns=2;i=3")
-        Level = Lev.get_value()
         Ref = opc_client.get_node("ns=2;i=2")
-        Ref.set_value(1)
-        response = str(counter) + ',' + str(Level)
+        Ref.set_value(temp_output)
+        Free = opc_client.get_node("ns=2;i=4")
+        Free.set_value(True)
+        sleep(.02)
+        Lev = opc_client.get_node("ns=2;i=3")
+        currentOutput = Lev.get_value()
+        response = str(counter) + ',' + str(currentOutput)
         client_socket.send(response.encode('utf-8'))
-        sleep(.01 - (datetime.datetime.now()-start_time).total_seconds())
+        sleep(.1 - (datetime.datetime.now()-start_time).total_seconds())
         counter = counter+1
 
     # Close the connection
