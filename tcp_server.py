@@ -2,9 +2,10 @@ import datetime
 import socket
 import threading
 from time import sleep
+from opcua import Client
 
 # Define the server host and port
-HOST = 'localhost'
+HOST = '127.0.0.1'
 PORT = 12345
 
 level_input = 0.5
@@ -49,10 +50,16 @@ def ReceiverServer():
     # Close the connection
     client_socket.close()
     server_socket.close()
+    
 
 def SenderServer():
     global level_input
 
+    counter = 1
+
+    opc_url = "opc.tcp://127.0.0.1:4850"
+    opc_client = Client(opc_url)
+    opc_client.connect()
     # Create a TCP socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -79,14 +86,19 @@ def SenderServer():
             print("Termination code received. Closing the connection.")
             break
 
-        
-        response = str(1) + ',' + str(data)
+        Lev = opc_client.get_node("ns=2;i=3")
+        Level = Lev.get_value()
+        Ref = opc_client.get_node("ns=2;i=2")
+        Ref.set_value(1)
+        response = str(counter) + ',' + str(Level)
         client_socket.send(response.encode('utf-8'))
         sleep(.01 - (datetime.datetime.now()-start_time).total_seconds())
+        counter = counter+1
 
     # Close the connection
     client_socket.close()
     server_socket.close()
+    opc_client.disconnect()
 
 # Create and start the threads
 thread1 = threading.Thread(target=ReceiverServer)

@@ -1,9 +1,9 @@
 from opcua import Server
-from random import randint
+from random import random
 import datetime
 import time
 
-url = "opc.tcp://192.168.0.8:4840"
+url = "opc.tcp://127.0.0.1:4850"
 server = Server()
 server.set_endpoint(url)
 
@@ -14,27 +14,20 @@ node = server.get_objects_node()
 
 Param = node.add_object(addspace, "Parameters")
 
-Temp = Param.add_variable(addspace, "Temperature", 0)
-Press = Param.add_variable(addspace, "Pressure", 0)
-Time = Param.add_variable(addspace, "Time", 0)
+Ref = Param.add_variable(addspace, "Reference", 0)
+Ref.set_writable()
 
-Temp.set_writable()
-Press.set_writable()
-Time.set_writable()
+Lev = Param.add_variable(addspace, "Level", 1)
+Lev.set_writable()
 
 server.start()
 print("Server started ad {}".format(url))
 
 while True:
 
-    Temperature = randint(10, 50)
-    Pressure = randint(200,999)
-    Chrono = datetime.datetime.now()
+    Level = random()
+    Lev.set_value(Level)
 
-    print(Temperature, Pressure, Chrono)
+    print(Lev.get_value(), Ref.get_value())
 
-    Temp.set_value(Temperature)
-    Press.set_value(Pressure)
-    Time.set_value(Chrono)
-
-    time.sleep(.5)
+    time.sleep(.1)
