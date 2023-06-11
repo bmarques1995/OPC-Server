@@ -2,8 +2,8 @@
 
 Para rodar o servidor OPC, abra os seguintes programas, respectivamente:
 
-`opc_server.py`
-`tcp_server.py`
-`tcp_client.py`
+`tanque.py`
+`CLP.py`
+`cliente_tcp.py`
 
-Onde o `opc_server.py` é independente, `tcp_server.py` depende de `opc_server.py` e `tcp_client.py` depende de `tcp_server.py`
+Onde o `tanque.py` é independente, `CLP.py` depende de `tanque.py` e `cliente_tcp.py` depende de `CLP.py`

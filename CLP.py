@@ -114,7 +114,9 @@ def SenderServer():
         currentOutput = Lev.get_value()
         response = str(counter) + ',' + str(currentOutput)
         client_socket.send(response.encode('utf-8'))
-        sleep(.1 - (datetime.datetime.now()-start_time).total_seconds())
+        waiting_time = .1 - (datetime.datetime.now()-start_time).total_seconds()
+        if waiting_time > .0:
+            sleep(waiting_time)
         counter = counter+1
 
     # Close the connection
